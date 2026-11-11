@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1217"/>
+      <stop offset="100%" stop-color="#080b0e"/>
+    </linearGradient>
+    <linearGradient id="emerald-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f5a0"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#bg)" stroke="#10b981" stroke-width="2" stroke-opacity="0.35"/>
+  <!-- Terminal Prompt Symbol & P in Emerald Mint -->
+  <path d="M16 22 L26 32 L16 42" fill="none" stroke="url(#emerald-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="34" cy="32" r="3" fill="#00f5a0"/>
+  <path d="M42 22 L42 42 M42 22 L49 22 C53 22 55 25 55 28 C55 31 53 34 49 34 L42 34" fill="none" stroke="#f8fafc" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
