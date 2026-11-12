@@ -10,7 +10,9 @@ import {
   Check,
   ArrowUpRight,
   Sparkles,
-  MessageSquare
+  MessageSquare,
+  Loader2,
+  ExternalLink
 } from "lucide-react";
 import { PERSONAL_INFO } from "../data/portfolioData";
 import { GithubIcon, LinkedinIcon } from "./Icons";
@@ -28,7 +30,7 @@ export const Contact = ({ onCopyNotice }: ContactProps) => {
     subject: "",
     message: ""
   });
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "fallback">("idle");
 
   useEffect(() => {
     const updateTime = () => {
@@ -56,22 +58,85 @@ export const Contact = ({ onCopyNotice }: ContactProps) => {
     setTimeout(() => setCopiedType(null), 2000);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const getMailData = () => {
+    const subj = encodeURIComponent(
+      `[Portfolio Inquiry] ${formState.subject || "Collaboration"} from ${formState.name || "Visitor"}`
+    );
+    const body = encodeURIComponent(
+      `Hi Piyush,\n\nName: ${formState.name}\nEmail: ${formState.email}\n\nMessage:\n${formState.message}\n`
+    );
+    const raw = `To: ${PERSONAL_INFO.email}\nSubject: [Portfolio Inquiry] ${formState.subject || "Collaboration"} from ${formState.name}\nFrom: ${formState.name} (${formState.email})\n\n${formState.message}`;
+    return { subj, body, raw };
+  };
+
+  const handleOpenGmail = () => {
+    if (!formState.name || !formState.email || !formState.message) {
+      onCopyNotice("Please fill in your name, email, and message first!");
+      return;
+    }
+    const { subj, body } = getMailData();
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+      PERSONAL_INFO.email
+    )}&su=${subj}&body=${body}`;
+    window.open(gmailUrl, "_blank", "noopener,noreferrer");
+    onCopyNotice("Opened Gmail compose tab with your message!");
+  };
+
+  const handleOpenMailApp = () => {
+    if (!formState.name || !formState.email || !formState.message) {
+      onCopyNotice("Please fill in your name, email, and message first!");
+      return;
+    }
+    const { subj, body } = getMailData();
+    window.location.href = `mailto:${PERSONAL_INFO.email}?subject=${subj}&body=${body}`;
+    onCopyNotice("Launching default mail client...");
+  };
+
+  const handleCopyDraft = () => {
+    if (!formState.name || !formState.email || !formState.message) {
+      onCopyNotice("Please fill in your name, email, and message first!");
+      return;
+    }
+    const { raw } = getMailData();
+    navigator.clipboard.writeText(raw);
+    onCopyNotice("Copied full draft to clipboard! You can paste it into any email client.");
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formState.name || !formState.email || !formState.message) return;
 
-    // Launch mailto prefilled
-    const mailtoSubject = encodeURIComponent(
-      `[Portfolio Contact] ${formState.subject || "Collaboration Inquiry"} from ${formState.name}`
-    );
-    const mailtoBody = encodeURIComponent(
-      `Hi Piyush Pandey,\n\nName: ${formState.name}\nEmail: ${formState.email}\n\nMessage:\n${formState.message}\n`
-    );
+    setStatus("sending");
 
-    const mailtoUrl = `mailto:${PERSONAL_INFO.email}?subject=${mailtoSubject}&body=${mailtoBody}`;
-    window.location.href = mailtoUrl;
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
+    try {
+      // Direct submission via formsubmit.co API
+      const response = await fetch(`https://formsubmit.co/ajax/${PERSONAL_INFO.email}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: JSON.stringify({
+          name: formState.name,
+          email: formState.email,
+          _subject: `[Portfolio Contact] ${formState.subject || "Inquiry"} from ${formState.name}`,
+          message: formState.message,
+          _template: "table"
+        })
+      });
+
+      if (response.ok) {
+        setStatus("success");
+        onCopyNotice("Message sent directly to Piyush!");
+        setFormState({ name: "", email: "", subject: "", message: "" });
+        setTimeout(() => setStatus("idle"), 8000);
+      } else {
+        throw new Error("Submission service error");
+      }
+    } catch {
+      // In case client is offline or endpoint blocked, trigger smooth fallback
+      setStatus("fallback");
+    }
   };
 
   return (
@@ -206,7 +271,7 @@ export const Contact = ({ onCopyNotice }: ContactProps) => {
               <MessageSquare size={18} className="form-icon" />
               <div>
                 <h3 className="form-title">Send a Quick Message</h3>
-                <p className="form-subtitle">Directly opens your preferred mail client</p>
+                <p className="form-subtitle">Direct delivery straight to my personal inbox</p>
               </div>
             </div>
 
@@ -254,21 +319,99 @@ export const Contact = ({ onCopyNotice }: ContactProps) => {
                   id="message"
                   required
                   rows={4}
-                  placeholder="Hi Piyush Pandey, I noticed your work in network security and cloud deployment..."
+                  placeholder="Hi Piyush, I noticed your work in network security and cloud deployment..."
                   value={formState.message}
                   onChange={(e) => setFormState({ ...formState, message: e.target.value })}
                 />
               </div>
 
-              <button type="submit" className="form-submit-btn">
-                <span>Dispatch Email</span>
-                <Send size={15} />
+              <button
+                type="submit"
+                className="form-submit-btn"
+                disabled={status === "sending"}
+              >
+                {status === "sending" ? (
+                  <>
+                    <Loader2 size={16} className="button-spinner" />
+                    <span>Sending Message Directly...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send Message Directly</span>
+                    <Send size={15} />
+                  </>
+                )}
               </button>
 
-              {submitted && (
+              {/* Alternative Send Options */}
+              <div className="form-alternative-actions">
+                <span className="alt-label">Or send via your email client:</span>
+                <div className="alt-buttons-group">
+                  <button
+                    type="button"
+                    className="alt-action-pill"
+                    onClick={handleOpenGmail}
+                    title="Open in Gmail web in a new tab"
+                  >
+                    <span>Open in Gmail (Web)</span>
+                    <ExternalLink size={12} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="alt-action-pill"
+                    onClick={handleOpenMailApp}
+                    title="Open in default desktop mail application"
+                  >
+                    <span>Desktop Mail App</span>
+                    <Mail size={12} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="alt-action-pill"
+                    onClick={handleCopyDraft}
+                    title="Copy full pre-filled message text"
+                  >
+                    <span>Copy Draft</span>
+                    <Copy size={12} />
+                  </button>
+                </div>
+              </div>
+
+              {status === "success" && (
                 <div className="form-success-alert">
                   <Sparkles size={16} />
-                  <span>Your email client was opened with the pre-filled inquiry. Thank you!</span>
+                  <span>
+                    Message delivered successfully to <strong>{PERSONAL_INFO.email}</strong>!
+                    Piyush has received it and will reply to you shortly.
+                  </span>
+                </div>
+              )}
+
+              {status === "fallback" && (
+                <div className="form-fallback-alert">
+                  <p className="fallback-text">
+                    Direct web delivery encountered a network filter. Click below to send directly via Gmail or your mail app:
+                  </p>
+                  <div className="fallback-buttons">
+                    <button
+                      type="button"
+                      className="fallback-btn primary"
+                      onClick={handleOpenGmail}
+                    >
+                      <span>Send with Gmail Web</span>
+                      <ExternalLink size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      className="fallback-btn secondary"
+                      onClick={handleCopyDraft}
+                    >
+                      <Copy size={13} />
+                      <span>Copy Full Message</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </form>
