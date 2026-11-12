@@ -60,7 +60,7 @@ export const PERSONAL_INFO = {
   status: "Available for Internships & Engineering Roles",
   location: "Noida, Uttar Pradesh, India",
   timezone: "IST (UTC+5:30)",
-  email: "https://mail.google.com/mail/?view=cm&to=piyushpandeynoida@gmail.com",
+  email: "piyushpandeynoida@gmail.com",
   phone: "+91 8527291104",
   github: "https://github.com/Piyush6917",
   linkedin: "https://www.linkedin.com/in/piyush-pandey-489025284/",
