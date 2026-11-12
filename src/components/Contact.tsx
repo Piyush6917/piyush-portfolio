@@ -68,7 +68,8 @@ export const Contact = ({ onCopyNotice }: ContactProps) => {
       `Hi Piyush Pandey,\n\nName: ${formState.name}\nEmail: ${formState.email}\n\nMessage:\n${formState.message}\n`
     );
 
-    window.open(`mailto:${PERSONAL_INFO.email}?subject=${mailtoSubject}&body=${mailtoBody}`);
+    const mailtoUrl = `mailto:${PERSONAL_INFO.email}?subject=${mailtoSubject}&body=${mailtoBody}`;
+    window.location.href = mailtoUrl;
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 5000);
   };
