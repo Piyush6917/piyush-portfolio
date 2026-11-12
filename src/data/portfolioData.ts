@@ -63,7 +63,7 @@ export const PERSONAL_INFO = {
   email: "piyushpandeynoida@gmail.com",
   phone: "+91 8527291104",
   github: "https://github.com/Piyush6917",
-  linkedin: "https://linkedin.com/in/piyush-pandey",
+  linkedin: "https://www.linkedin.com/in/piyush-pandey-489025284/",
   stats: [
     { label: "Research Publications", value: "2", sub: "Peer-reviewed Journals" },
     { label: "Engineering Projects", value: "4+", sub: "Production-ready architectures" },
